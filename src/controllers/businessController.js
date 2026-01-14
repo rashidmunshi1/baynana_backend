@@ -1,0 +1,315 @@
+const Business = require("../models/Business");
+
+// ADD BUSINESS
+exports.addBusiness = async (req, res) => {
+  try {
+    const {
+      businessName,
+      category,
+      subcategories,
+      ownerName,
+      mobile,
+      address,
+      city,
+      pincode,
+      locationUrl,
+      description,
+      services,
+      timings,
+      isPaid,
+      paidAmount,
+      paidDays,
+      userId: sentUserId  // 🔥 admin may send this
+    } = req.body;
+
+    // 1️⃣ IMAGES
+    const images = req.files ? req.files.map((f) => f.filename) : [];
+
+    // 2️⃣ PAID LOGIC
+    let paidExpiry = null;
+    if (isPaid && paidDays) {
+      paidExpiry = new Date();
+      paidExpiry.setDate(paidExpiry.getDate() + Number(paidDays));
+    }
+
+    // 3️⃣ USER ID LOGIC (AUTO DETECT)
+    // If admin sends userId → use that
+    // Else use logged-in user's id
+    let userId = sentUserId || req.user?._id;
+    userId = "64b7f2d9a12c9a4b8e9a1234";
+    if (!userId) {
+      return res.status(400).json({ message: "User ID missing" });
+    }
+
+    // 4️⃣ CREATE BUSINESS
+    const business = await Business.create({
+      businessName,
+      category,
+      subcategories,
+      ownerName,
+      mobile,
+      address,
+      city,
+      pincode,
+      locationUrl,
+      description,
+      services,
+      timings,
+      images,
+      isPaid,
+      paidAmount,
+      paidDays,
+      paidExpiry,
+      userId,
+      status: false, // Default to Pending (False) until Admin approves
+    });
+
+    res.status(201).json({ message: "Business added successfully", business });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// 🆕 TOGGLE STATUS (Approve/Reject)
+// 🆕 UPDATE APPROVAL STATUS (Approve/Reject)
+exports.toggleBusinessStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, reason } = req.body; // status: 'approved' | 'rejected' | 'pending'
+
+    const business = await Business.findById(id);
+
+    if (!business) return res.status(404).json({ message: "Business not found" });
+
+    business.approvalStatus = status;
+
+    if (status === 'rejected') {
+      business.rejectionReason = reason || "Not specified";
+      business.status = false; // Hide from public
+    } else if (status === 'approved') {
+      business.rejectionReason = "";
+      business.status = true; // Show to public
+    } else {
+      business.status = false; // Pending
+    }
+
+    await business.save();
+
+    res.status(200).json({
+      message: `Business ${status}`,
+      business
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+exports.updateBusiness = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const {
+      businessName,
+      category,
+      subcategories,
+      ownerName,
+      mobile,
+      address,
+      city,
+      pincode,
+      locationUrl,
+      description,
+      services,
+      timings,
+      isPaid,
+      paidAmount,
+      paidDays
+    } = req.body;
+
+    const updateData = {
+      businessName,
+      category,
+      subcategories,
+      ownerName,
+      mobile,
+      address,
+      city,
+      pincode,
+      locationUrl,
+      description,
+      services,
+      timings
+    };
+
+    // New images uploaded?
+    if (req.files && req.files.length > 0) {
+      updateData.images = req.files.map((file) => file.filename);
+    }
+
+    // Update Paid Details
+    if (isPaid !== undefined) {
+      updateData.isPaid = isPaid;
+      updateData.paidAmount = paidAmount;
+      updateData.paidDays = paidDays;
+
+      if (isPaid && paidDays) {
+        let newExpiry = new Date();
+        newExpiry.setDate(newExpiry.getDate() + Number(paidDays));
+        updateData.paidExpiry = newExpiry;
+      }
+    }
+
+    const updated = await Business.findByIdAndUpdate(id, updateData, { new: true });
+
+    if (!updated) return res.status(404).json({ message: "Business not found" });
+
+    res.status(200).json({ message: "Business updated", updated });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+exports.getAllBusiness = async (req, res) => {
+  try {
+    const businesses = await Business.find()
+      .populate("category")
+      .populate("subcategories")
+      .sort({ status: 1, isPaid: -1, paidExpiry: -1 }); // Pending (false/0) first, then Paid
+
+    res.status(200).json(businesses);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getBusinessById = async (req, res) => {
+  try {
+    const business = await Business.findById(req.params.id)
+      .populate("category")
+      .populate("subcategories");
+
+    if (!business) return res.status(404).json({ message: "Business not found" });
+
+    res.status(200).json(business);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.deleteBusiness = async (req, res) => {
+  try {
+    const deleted = await Business.findByIdAndDelete(req.params.id);
+
+    if (!deleted)
+      return res.status(404).json({ message: "Business not found" });
+
+    res.status(200).json({ message: "Business deleted successfully" });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+exports.totalbusiness = async (req, res) => {
+  try {
+    const total = await Business.countDocuments();
+    res.status(200).json({ total });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getUserBusinesses = async (req, res) => {
+  try {
+    const mobile = req.params.mobile;
+
+    if (!mobile) {
+      return res.status(400).json({ message: "Mobile number is required" });
+    }
+
+    const businesses = await Business.find({ mobile })
+      .populate("category")
+      .populate("subcategories")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: businesses.length,
+      businesses,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch user businesses",
+      error: error.message,
+    });
+  }
+};
+
+exports.searchBusiness = async (req, res) => {
+  try {
+    const { q } = req.query;
+
+    if (!q || q.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "Search query is required",
+      });
+    }
+
+    const keyword = q.trim();
+
+    const businesses = await Business.find({
+      status: true, // only active businesses
+      // isPaid: true, // REMOVED so unpaid also show up
+      $or: [
+        { businessName: { $regex: keyword, $options: "i" } },
+        { city: { $regex: keyword, $options: "i" } },
+        { address: { $regex: keyword, $options: "i" } },
+        { services: { $regex: keyword, $options: "i" } },
+      ],
+    })
+      .populate("category")
+      .populate("subcategories")
+      .sort({ isPaid: -1, paidAmount: -1, createdAt: -1 }); // paid first, then higher amount
+
+    res.status(200).json({
+      success: true,
+      count: businesses.length,
+      businesses,
+    });
+
+  } catch (error) {
+    console.error("Search error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+exports.getBusinessesByCategory = async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+
+    const businesses = await Business.find({
+      category: categoryId,
+      status: true,
+    })
+      .populate("category")
+      .populate("subcategories")
+      .sort({ isPaid: -1, paidAmount: -1, createdAt: -1 });
+
+    res.status(200).json({ businesses });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
