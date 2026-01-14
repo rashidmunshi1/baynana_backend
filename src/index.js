@@ -23,7 +23,9 @@ mongoose.connect(process.env.MONGODB_URI)
 // Base Route
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-
+app.get('/', (req, res) => {
+    res.send('Welcome to the API');
+});
 
 app.use('/api/user', userRoutes);
 app.use('/api/admin', aminRoutes);
