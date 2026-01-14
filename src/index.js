@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const userRoutes = require('./routes/userRoutes');
@@ -11,7 +12,7 @@ const path = require("path");
 app.use(express.json());
 app.use(cors());
 // Connect to MongoDB
-mongoose.connect('mongodb://127.0.0.1:27017/justdial')
+mongoose.connect(process.env.MONGODB_URI)
     .then(() => {
         console.log('Connected to MongoDB');
     })
