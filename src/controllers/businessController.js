@@ -36,7 +36,6 @@ exports.addBusiness = async (req, res) => {
     // If admin sends userId → use that
     // Else use logged-in user's id
     let userId = sentUserId || req.user?._id;
-    userId = "64b7f2d9a12c9a4b8e9a1234";
     if (!userId) {
       return res.status(400).json({ message: "User ID missing" });
     }

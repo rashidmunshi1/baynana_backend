@@ -4,7 +4,7 @@ const sendOtp = require("../Helper/twilioService");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
+const generateOtp = () => "123456"; // TESTING OTP
 
 const UserController = {
 
@@ -213,7 +213,7 @@ const UserController = {
             await user.save();
 
             // Send OTP via Twilio
-            await sendOtp(twilioNumber, otp);
+            // await sendOtp(twilioNumber, otp);
 
             return res.status(200).json({
                 success: true,
@@ -316,7 +316,7 @@ const UserController = {
             await user.save();
 
             // Send OTP via Twilio
-            await sendOtp(twilioNumber, otp);
+            // await sendOtp(twilioNumber, otp);
 
             return res.status(200).json({
                 success: true,
