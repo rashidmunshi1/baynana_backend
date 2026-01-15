@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const { registerAdmin, loginAdmin, forgotPassword, resetPassword, addBanner, getBanners, updateBanner, deleteBanner } = require("../controllers/adminController");
-const { addCategory, getCategories, getParentCategories, totalcategotycount } = require("../controllers/categoryController");
+const { registerAdmin, loginAdmin, forgotPassword, resetPassword } = require("../controllers/adminController");
+const { createBanner, getAllBanners, updateBanner, deleteBanner } = require("../controllers/bannerController");
+const { addCategory, getCategories, getParentCategories, totalcategotycount, updateCategory, deleteCategory } = require("../controllers/categoryController");
 const {
   addBusiness,
   updateBusiness,
@@ -11,7 +12,7 @@ const {
   deleteBusiness,
 } = require("../controllers/businessController");
 const userController = require("../controllers/UserController");
-const { uploadCategory, uploadBusiness, uploadBanner } = require("../Helper/upload");
+const { uploadCategory, uploadBusiness, uploadBanner, uploadProfile } = require("../Helper/upload");
 const {
   addSubCategory,
   getAllSubCategories,
@@ -31,6 +32,8 @@ router.post("/add-category", uploadCategory.single("image"), addCategory);
 router.get("/all-category", getCategories);
 router.get("/parent-category", getParentCategories);
 router.get("/total-category", totalcategotycount);
+router.put("/update-category/:id", uploadCategory.single("image"), updateCategory);
+router.delete("/delete-category/:id", deleteCategory);
 
 // Admin adds sub-category (Moved from subCategoryRoutes)
 router.post("/add-subcategory", uploadCategory.single("image"), addSubCategory);
@@ -52,11 +55,14 @@ router.get("/total-business", totalbusiness);
 
 //user routes
 router.get('/all-users', userController.index);
+router.get('/all-users', userController.index);
 router.get('/total-users', userController.totalusercount);
+router.put('/update-user/:id', uploadProfile.single('profileImage'), userController.update);
+router.delete('/delete-user/:id', userController.delete);
 
 // Banner routes
-router.post("/add-banner", uploadBanner.single("image"), addBanner);
-router.get("/all-banners", getBanners);
+router.post("/add-banner", uploadBanner.single("image"), createBanner);
+router.get("/all-banners", getAllBanners);
 router.put("/update-banner/:id", uploadBanner.single("image"), updateBanner);
 router.delete("/delete-banner/:id", deleteBanner);
 

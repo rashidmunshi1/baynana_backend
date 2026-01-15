@@ -84,9 +84,29 @@ const bannerStorage = multer.diskStorage({
 const uploadBanner = multer({ storage: bannerStorage });
 
 
+// ---------- PROFILE STORAGE ----------
+const profilePath = "uploads/profile/";
+
+if (!fs.existsSync(profilePath)) {
+  fs.mkdirSync(profilePath, { recursive: true });
+}
+
+const profileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, profilePath);
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+
+const uploadProfile = multer({ storage: profileStorage });
+
+
 // EXPORT ALL
 module.exports = {
   uploadCategory,
   uploadBusiness,
-  uploadBanner
+  uploadBanner,
+  uploadProfile
 };
