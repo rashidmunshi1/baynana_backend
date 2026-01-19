@@ -14,6 +14,7 @@ router.get('/profile/:id/edit', userController.edit);
 router.put('/profile/:id/update', upload.single('profileImage'), userController.update);
 router.put('/profile/update-name', authMiddleware, userController.updateName);
 router.delete('/profile/:id/delete', userController.delete);
+router.post('/add-review', userController.addReview);
 
 console.log("Loading User Route: /my-businesses/:mobile");
 router.get("/my-businesses/:mobile", getUserBusinesses);

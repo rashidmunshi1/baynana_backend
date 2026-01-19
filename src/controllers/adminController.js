@@ -212,3 +212,55 @@ exports.deleteBanner = async (req, res) => {
   }
 };
 
+// Get Admin Profile
+exports.getProfile = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, "SECRET123");
+
+    const admin = await Admin.findById(decoded.id).select("-password");
+    if (!admin) return res.status(404).json({ message: "Admin not found" });
+
+    res.status(200).json(admin);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update Admin Profile
+exports.updateProfile = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, "SECRET123");
+
+    const { name, email, password } = req.body;
+    const updateData = {};
+    if (name) updateData.name = name;
+    // Email is not updatable
+
+
+    if (password) {
+      updateData.password = await bcrypt.hash(password, 10);
+    }
+
+    const updatedAdmin = await Admin.findByIdAndUpdate(decoded.id, updateData, {
+      new: true,
+    }).select("-password");
+
+    res.status(200).json({
+      message: "Profile updated successfully",
+      admin: updatedAdmin,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
