@@ -63,6 +63,10 @@ const businessSchema = new mongoose.Schema({
   },
   rejectionReason: { type: String, default: "" },
 
+  // Ratings
+  rating: { type: Number, default: 0 },
+  ratingCount: { type: Number, default: 0 },
+
 }, { timestamps: true });
 
 module.exports = mongoose.model("Business", businessSchema);

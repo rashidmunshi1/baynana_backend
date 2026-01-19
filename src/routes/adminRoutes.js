@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { registerAdmin, loginAdmin, forgotPassword, resetPassword } = require("../controllers/adminController");
+const { registerAdmin, loginAdmin, forgotPassword, resetPassword, getProfile, updateProfile } = require("../controllers/adminController");
 const { createBanner, getAllBanners, updateBanner, deleteBanner } = require("../controllers/bannerController");
 const { addCategory, getCategories, getParentCategories, totalcategotycount, updateCategory, deleteCategory } = require("../controllers/categoryController");
 const {
@@ -25,6 +25,8 @@ router.post("/register", registerAdmin);
 router.post("/login", loginAdmin);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
+router.get("/profile", getProfile);
+router.put("/profile", updateProfile);
 
 
 // Admin adds category

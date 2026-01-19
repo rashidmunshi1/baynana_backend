@@ -1,5 +1,7 @@
 const User = require("../models/UserModel");
 const Banner = require("../models/Banner");
+const Review = require("../models/Review");
+const Business = require("../models/Business");
 const sendOtp = require("../Helper/twilioService");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
@@ -328,6 +330,53 @@ const UserController = {
             return res.status(500).json({
                 message: "Failed to send OTP",
                 error: error.message,
+            });
+        }
+    },
+
+    // ===================== ADD REVIEW =====================
+    addReview: async (req, res) => {
+        try {
+            const { businessId, userId, rating, review } = req.body;
+
+            if (!businessId || !userId || !rating) {
+                return res.status(400).json({ message: "BusinessId, UserId and Rating are required" });
+            }
+
+            // Create Review
+            const newReview = new Review({
+                businessId,
+                userId,
+                rating,
+                review
+            });
+            await newReview.save();
+
+            // Update Business Stats (Rating & Count)
+            const business = await Business.findById(businessId);
+            if (business) {
+                const currentCount = business.ratingCount || 0;
+                const currentRating = business.rating || 0;
+
+                const newCount = currentCount + 1;
+                // Calculate new average: ((oldAvg * oldCnt) + newRating) / newCnt
+                const newRating = ((currentRating * currentCount) + rating) / newCount;
+
+                business.ratingCount = newCount;
+                business.rating = parseFloat(newRating.toFixed(1)); // Keep 1 decimal
+                await business.save();
+            }
+
+            return res.status(201).json({
+                success: true,
+                message: "Review added successfully",
+                review: newReview
+            });
+
+        } catch (error) {
+            return res.status(500).json({
+                message: "Failed to add review",
+                error: error.message
             });
         }
     }
