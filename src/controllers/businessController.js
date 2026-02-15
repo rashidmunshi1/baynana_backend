@@ -1,4 +1,5 @@
 const Business = require("../models/Business");
+const Review = require("../models/Review"); // Import Review Model
 
 // ADD BUSINESS
 exports.addBusiness = async (req, res) => {
@@ -195,7 +196,20 @@ exports.getBusinessById = async (req, res) => {
 
     if (!business) return res.status(404).json({ message: "Business not found" });
 
-    res.status(200).json(business);
+    // Fetch Reviews
+    const reviews = await Review.find({ businessId: business._id });
+    const reviewCount = reviews.length;
+    const avgRating = reviewCount > 0
+      ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviewCount).toFixed(1)
+      : 0;
+
+    const businessWithRating = {
+      ...business.toObject(),
+      rating: parseFloat(avgRating),
+      ratingCount: reviewCount
+    };
+
+    res.status(200).json(businessWithRating);
 
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -239,10 +253,24 @@ exports.getUserBusinesses = async (req, res) => {
       .populate("subcategories")
       .sort({ createdAt: -1 });
 
+    // Attach Ratings
+    const businessesWithRatings = await Promise.all(
+      businesses.map(async (biz) => {
+        const reviews = await Review.find({ businessId: biz._id });
+        const count = reviews.length;
+        const avg = count > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / count : 0;
+        return {
+          ...biz.toObject(),
+          rating: parseFloat(avg.toFixed(1)),
+          ratingCount: count,
+        };
+      })
+    );
+
     res.status(200).json({
       success: true,
-      count: businesses.length,
-      businesses,
+      count: businessesWithRatings.length,
+      businesses: businessesWithRatings,
     });
 
   } catch (error) {
@@ -280,10 +308,24 @@ exports.searchBusiness = async (req, res) => {
       .populate("subcategories")
       .sort({ isPaid: -1, paidAmount: -1, createdAt: -1 }); // paid first, then higher amount
 
+    // Attach Ratings
+    const businessesWithRatings = await Promise.all(
+      businesses.map(async (biz) => {
+        const reviews = await Review.find({ businessId: biz._id });
+        const count = reviews.length;
+        const avg = count > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / count : 0;
+        return {
+          ...biz.toObject(),
+          rating: parseFloat(avg.toFixed(1)),
+          ratingCount: count,
+        };
+      })
+    );
+
     res.status(200).json({
       success: true,
-      count: businesses.length,
-      businesses,
+      count: businessesWithRatings.length,
+      businesses: businessesWithRatings,
     });
 
   } catch (error) {
@@ -307,7 +349,21 @@ exports.getBusinessesByCategory = async (req, res) => {
       .populate("subcategories")
       .sort({ isPaid: -1, paidAmount: -1, createdAt: -1 });
 
-    res.status(200).json({ businesses });
+    // Attach Ratings
+    const businessesWithRatings = await Promise.all(
+      businesses.map(async (biz) => {
+        const reviews = await Review.find({ businessId: biz._id });
+        const count = reviews.length;
+        const avg = count > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / count : 0;
+        return {
+          ...biz.toObject(),
+          rating: parseFloat(avg.toFixed(1)),
+          ratingCount: count,
+        };
+      })
+    );
+
+    res.status(200).json({ businesses: businessesWithRatings });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
