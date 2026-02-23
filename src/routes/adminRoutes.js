@@ -52,6 +52,7 @@ router.get("/business/:id", getBusinessById);
 router.delete("/business/delete/:id", deleteBusiness);
 console.log("Loading Admin Route: /business/toggle-status/:id");
 router.put("/business/toggle-status/:id", require("../controllers/businessController").toggleBusinessStatus);
+router.put("/business/bulk-status", require("../controllers/businessController").bulkUpdateStatus);
 router.get("/total-business", totalbusiness);
 
 

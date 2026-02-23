@@ -20,6 +20,10 @@ const businessSchema = new mongoose.Schema({
   // Google Maps URL
   locationUrl: { type: String, default: null },
 
+  // GPS Coordinates
+  latitude: { type: Number, default: null },
+  longitude: { type: Number, default: null },
+
   // Description
   description: { type: String, default: "" },
 
