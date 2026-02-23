@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const upload = require('../Helper/multerConfig');
+const { uploadProfile } = require('../Helper/upload');
 
 const userController = require('../controllers/UserController');
 const { sendOtpHandler, verifyOtpHandler } = require('../controllers/otpController');
@@ -11,7 +11,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 router.get('/user/index', userController.index);
 router.post('/register', userController.registerUser);
 router.get('/profile/:id/edit', userController.edit);
-router.put('/profile/:id/update', upload.single('profileImage'), userController.update);
+router.put('/profile/:id/update', uploadProfile.single('profileImage'), userController.update);
 router.put('/profile/update-name', authMiddleware, userController.updateName);
 router.delete('/profile/:id/delete', userController.delete);
 router.post('/add-review', userController.addReview);

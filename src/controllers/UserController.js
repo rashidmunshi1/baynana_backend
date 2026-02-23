@@ -271,7 +271,8 @@ const UserController = {
                 user: {
                     id: user._id,
                     name: user.name,
-                    mobile: user.mobileno
+                    mobile: user.mobileno,
+                    profileImage: user.profileImage
                 }
             });
 

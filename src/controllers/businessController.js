@@ -14,6 +14,8 @@ exports.addBusiness = async (req, res) => {
       city,
       pincode,
       locationUrl,
+      latitude,
+      longitude,
       description,
       services,
       timings,
@@ -52,6 +54,8 @@ exports.addBusiness = async (req, res) => {
       city,
       pincode,
       locationUrl,
+      latitude: latitude ? Number(latitude) : null,
+      longitude: longitude ? Number(longitude) : null,
       description,
       services,
       timings,
@@ -106,6 +110,47 @@ exports.toggleBusinessStatus = async (req, res) => {
   }
 };
 
+// 🆕 BULK UPDATE STATUS (Approve / Reject multiple businesses)
+exports.bulkUpdateStatus = async (req, res) => {
+  try {
+    const { ids, status, reason } = req.body;
+    // ids: array of business _id strings
+    // status: 'approved' | 'rejected' | 'pending'
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "Please provide an array of business IDs" });
+    }
+    if (!['approved', 'rejected', 'pending'].includes(status)) {
+      return res.status(400).json({ message: "Invalid status. Must be 'approved', 'rejected', or 'pending'" });
+    }
+
+    const updateData = { approvalStatus: status };
+
+    if (status === 'approved') {
+      updateData.status = true;
+      updateData.rejectionReason = "";
+    } else if (status === 'rejected') {
+      updateData.status = false;
+      updateData.rejectionReason = reason || "Not specified";
+    } else {
+      updateData.status = false;
+    }
+
+    const result = await Business.updateMany(
+      { _id: { $in: ids } },
+      { $set: updateData }
+    );
+
+    res.status(200).json({
+      message: `${result.modifiedCount} business(es) ${status} successfully`,
+      modifiedCount: result.modifiedCount,
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 exports.updateBusiness = async (req, res) => {
   try {
@@ -121,6 +166,8 @@ exports.updateBusiness = async (req, res) => {
       city,
       pincode,
       locationUrl,
+      latitude,
+      longitude,
       description,
       services,
       timings,
@@ -139,6 +186,8 @@ exports.updateBusiness = async (req, res) => {
       city,
       pincode,
       locationUrl,
+      latitude: latitude ? Number(latitude) : null,
+      longitude: longitude ? Number(longitude) : null,
       description,
       services,
       timings
