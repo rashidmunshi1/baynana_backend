@@ -4,7 +4,7 @@ const { uploadProfile } = require('../Helper/upload');
 
 const userController = require('../controllers/UserController');
 const { sendOtpHandler, verifyOtpHandler } = require('../controllers/otpController');
-const { getUserBusinesses, searchBusiness, getBusinessesByCategory } = require("../controllers/businessController")
+const { getUserBusinesses, searchBusiness, getBusinessesByCategory, getBusinessById } = require("../controllers/businessController")
 const { getCategoryByName, getCategoryList } = require("../controllers/categoryController")
 const authMiddleware = require('../middleware/authMiddleware');
 //user routes
@@ -20,6 +20,7 @@ console.log("Loading User Route: /my-businesses/:mobile");
 router.get("/my-businesses/:mobile", getUserBusinesses);
 router.get("/search", searchBusiness);
 router.get("/business-by-category/:categoryId", getBusinessesByCategory);
+router.get("/business/:id", getBusinessById);
 router.get("/category/name/:name", getCategoryByName);
 router.get("/category/list", getCategoryList);
 
