@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const { registerAdmin, loginAdmin, forgotPassword, resetPassword, getProfile, updateProfile } = require("../controllers/adminController");
 const { createBanner, getAllBanners, updateBanner, deleteBanner } = require("../controllers/bannerController");
+const { createVideo, getAllVideos, updateVideo, deleteVideo } = require("../controllers/videoModuleController");
+const { createEventBanner, getAllEventBanners, updateEventBanner, deleteEventBanner } = require("../controllers/eventBannerController");
 const { addCategory, getCategories, getParentCategories, totalcategotycount, updateCategory, deleteCategory } = require("../controllers/categoryController");
 const {
   addBusiness,
@@ -12,7 +14,7 @@ const {
   deleteBusiness,
 } = require("../controllers/businessController");
 const userController = require("../controllers/UserController");
-const { uploadCategory, uploadBusiness, uploadBanner, uploadProfile } = require("../Helper/upload");
+const { uploadCategory, uploadBusiness, uploadBanner, uploadProfile, uploadVideo, uploadEventBanner } = require("../Helper/upload");
 const {
   addSubCategory,
   getAllSubCategories,
@@ -68,5 +70,17 @@ router.post("/add-banner", uploadBanner.single("image"), createBanner);
 router.get("/all-banners", getAllBanners);
 router.put("/update-banner/:id", uploadBanner.single("image"), updateBanner);
 router.delete("/delete-banner/:id", deleteBanner);
+
+// Video routes
+router.post("/add-video", uploadVideo.single("video"), createVideo);
+router.get("/all-videos", getAllVideos);
+router.put("/update-video/:id", uploadVideo.single("video"), updateVideo);
+router.delete("/delete-video/:id", deleteVideo);
+
+// Event Banner routes
+router.post("/add-event-banner", uploadEventBanner.single("image"), createEventBanner);
+router.get("/all-event-banners", getAllEventBanners);
+router.put("/update-event-banner/:id", uploadEventBanner.single("image"), updateEventBanner);
+router.delete("/delete-event-banner/:id", deleteEventBanner);
 
 module.exports = router;

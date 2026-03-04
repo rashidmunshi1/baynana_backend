@@ -25,6 +25,11 @@ exports.addBusiness = async (req, res) => {
       userId: sentUserId  // 🔥 admin may send this
     } = req.body;
 
+    let parsedTimings = timings;
+    if (typeof timings === "string") {
+      try { parsedTimings = JSON.parse(timings); } catch (e) { console.error("Timings parse error:", e); }
+    }
+
     // 1️⃣ IMAGES
     const images = req.files ? req.files.map((f) => f.filename) : [];
 
@@ -58,7 +63,7 @@ exports.addBusiness = async (req, res) => {
       longitude: longitude ? Number(longitude) : null,
       description,
       services,
-      timings,
+      timings: parsedTimings,
       images,
       isPaid,
       paidAmount,
@@ -176,6 +181,11 @@ exports.updateBusiness = async (req, res) => {
       paidDays
     } = req.body;
 
+    let parsedUpdateTimings = timings;
+    if (typeof timings === "string") {
+      try { parsedUpdateTimings = JSON.parse(timings); } catch (e) { console.error("Timings parse error:", e); }
+    }
+
     const updateData = {
       businessName,
       category,
@@ -190,7 +200,7 @@ exports.updateBusiness = async (req, res) => {
       longitude: longitude ? Number(longitude) : null,
       description,
       services,
-      timings
+      timings: parsedUpdateTimings
     };
 
     // New images uploaded?
@@ -255,7 +265,8 @@ exports.getBusinessById = async (req, res) => {
     const businessWithRating = {
       ...business.toObject(),
       rating: parseFloat(avgRating),
-      ratingCount: reviewCount
+      ratingCount: reviewCount,
+      reviews: reviews // adding this line to send the full review objects
     };
 
     res.status(200).json(businessWithRating);
