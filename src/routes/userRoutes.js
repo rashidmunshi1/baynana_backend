@@ -33,5 +33,7 @@ router.post('/login/verify-otp', userController.verifyLoginOtp);
 router.post('/signup/send-otp', userController.sendSignUpOtp);
 
 router.get('/banners', userController.getBanners);
+router.get('/event-banners', userController.getEventBanners);
+router.get('/videos', userController.getVideos);
 
 module.exports = router;

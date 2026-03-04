@@ -1,5 +1,7 @@
 const User = require("../models/UserModel");
 const Banner = require("../models/Banner");
+const VideoModule = require("../models/VideoModule");
+const EventBanner = require("../models/EventBanner");
 const Review = require("../models/Review");
 const Business = require("../models/Business");
 const sendOtp = require("../Helper/twilioService");
@@ -119,8 +121,34 @@ const UserController = {
 
     getBanners: async (req, res) => {
         try {
-            const banners = await Banner.find({ isActive: true });
+            const currentDate = new Date();
+            const query = {
+                isActive: true,
+                $and: [
+                    { $or: [{ startDate: null }, { startDate: { $lte: currentDate } }] },
+                    { $or: [{ endDate: null }, { endDate: { $gte: currentDate } }] }
+                ]
+            };
+            const banners = await Banner.find(query);
             res.status(200).json(banners);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    },
+
+    getEventBanners: async (req, res) => {
+        try {
+            const banners = await EventBanner.find({ isActive: true });
+            res.status(200).json(banners);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    },
+
+    getVideos: async (req, res) => {
+        try {
+            const videos = await VideoModule.find({ isActive: true });
+            res.status(200).json(videos);
         } catch (error) {
             res.status(500).json({ message: error.message });
         }

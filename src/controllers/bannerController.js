@@ -5,7 +5,7 @@ const path = require('path');
 // Create a new banner
 exports.createBanner = async (req, res) => {
     try {
-        const { title, description } = req.body;
+        const { title, description, userId, startDate, endDate } = req.body;
 
         if (!req.file) {
             return res.status(400).json({ message: "Image is required" });
@@ -17,6 +17,9 @@ exports.createBanner = async (req, res) => {
         const banner = new Banner({
             title,
             description,
+            userId: (userId && userId !== 'null' && userId !== 'undefined') ? userId : null,
+            startDate: (startDate && startDate !== 'null' && startDate !== 'undefined') ? startDate : null,
+            endDate: (endDate && endDate !== 'null' && endDate !== 'undefined') ? endDate : null,
             image: imagePath,
             isActive: true
         });
@@ -32,7 +35,7 @@ exports.createBanner = async (req, res) => {
 // Get all banners (Admin view)
 exports.getAllBanners = async (req, res) => {
     try {
-        const banners = await Banner.find().sort({ createdAt: -1 });
+        const banners = await Banner.find().populate('userId', 'name mobileno').sort({ createdAt: -1 });
         res.status(200).json(banners);
     } catch (error) {
         res.status(500).json({ message: "Server Error", error: error.message });
@@ -43,7 +46,7 @@ exports.getAllBanners = async (req, res) => {
 exports.updateBanner = async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, description, isActive } = req.body;
+        const { title, description, isActive, userId, startDate, endDate } = req.body;
 
         const banner = await Banner.findById(id);
         if (!banner) {
@@ -52,6 +55,15 @@ exports.updateBanner = async (req, res) => {
 
         banner.title = title || banner.title;
         banner.description = description || banner.description;
+        if (userId !== undefined) {
+            banner.userId = (userId && userId !== 'null' && userId !== 'undefined') ? userId : null;
+        }
+        if (startDate !== undefined) {
+            banner.startDate = (startDate && startDate !== 'null' && startDate !== 'undefined') ? startDate : null;
+        }
+        if (endDate !== undefined) {
+            banner.endDate = (endDate && endDate !== 'null' && endDate !== 'undefined') ? endDate : null;
+        }
         if (isActive !== undefined) {
             banner.isActive = isActive;
         }

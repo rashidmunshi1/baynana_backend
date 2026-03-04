@@ -103,10 +103,50 @@ const profileStorage = multer.diskStorage({
 const uploadProfile = multer({ storage: profileStorage });
 
 
+// ---------- VIDEO STORAGE ----------
+const videoPath = "uploads/videos/";
+
+if (!fs.existsSync(videoPath)) {
+  fs.mkdirSync(videoPath, { recursive: true });
+}
+
+const videoStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, videoPath);
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+
+const uploadVideo = multer({ storage: videoStorage });
+
+
+// ---------- EVENT BANNER STORAGE ----------
+const eventBannerPath = "uploads/eventbanner/";
+
+if (!fs.existsSync(eventBannerPath)) {
+  fs.mkdirSync(eventBannerPath, { recursive: true });
+}
+
+const eventBannerStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, eventBannerPath);
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+
+const uploadEventBanner = multer({ storage: eventBannerStorage });
+
+
 // EXPORT ALL
 module.exports = {
   uploadCategory,
   uploadBusiness,
   uploadBanner,
-  uploadProfile
+  uploadProfile,
+  uploadVideo,
+  uploadEventBanner
 };

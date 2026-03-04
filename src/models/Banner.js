@@ -12,6 +12,16 @@ const bannerSchema = new mongoose.Schema({
   description: {
     type: String,
   },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  startDate: {
+    type: Date,
+  },
+  endDate: {
+    type: Date,
+  },
   isActive: {
     type: Boolean,
     default: true,
