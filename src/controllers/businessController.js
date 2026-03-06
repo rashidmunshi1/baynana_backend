@@ -22,6 +22,7 @@ exports.addBusiness = async (req, res) => {
       isPaid,
       paidAmount,
       paidDays,
+      socialLinks,
       userId: sentUserId  // 🔥 admin may send this
     } = req.body;
 
@@ -63,6 +64,7 @@ exports.addBusiness = async (req, res) => {
       longitude: longitude ? Number(longitude) : null,
       description,
       services,
+      socialLinks,
       timings: parsedTimings,
       images,
       isPaid,
@@ -176,6 +178,7 @@ exports.updateBusiness = async (req, res) => {
       description,
       services,
       timings,
+      socialLinks,
       isPaid,
       paidAmount,
       paidDays
@@ -200,6 +203,7 @@ exports.updateBusiness = async (req, res) => {
       longitude: longitude ? Number(longitude) : null,
       description,
       services,
+      socialLinks,
       timings: parsedUpdateTimings
     };
 
@@ -256,7 +260,7 @@ exports.getBusinessById = async (req, res) => {
     if (!business) return res.status(404).json({ message: "Business not found" });
 
     // Fetch Reviews
-    const reviews = await Review.find({ businessId: business._id });
+    const reviews = await Review.find({ businessId: business._id }).populate("userId", "name profileImage");
     const reviewCount = reviews.length;
     const avgRating = reviewCount > 0
       ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviewCount).toFixed(1)
@@ -266,7 +270,7 @@ exports.getBusinessById = async (req, res) => {
       ...business.toObject(),
       rating: parseFloat(avgRating),
       ratingCount: reviewCount,
-      reviews: reviews // adding this line to send the full review objects
+      reviews: reviews // sending the populated review objects
     };
 
     res.status(200).json(businessWithRating);

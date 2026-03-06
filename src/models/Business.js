@@ -30,6 +30,9 @@ const businessSchema = new mongoose.Schema({
   // Services list
   services: [{ type: String, required: true }],
 
+  // Social Media Links
+  socialLinks: [{ type: String }],
+
   // Weekly opening-closing timings
   timings: {
     monday: { open: String, close: String, closed: { type: Boolean, default: false } },
