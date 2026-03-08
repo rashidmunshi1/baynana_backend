@@ -372,13 +372,14 @@ const UserController = {
                 return res.status(400).json({ message: "BusinessId, UserId and Rating are required" });
             }
 
+            // Check if user already reviewed this business
+            const existingReview = await Review.findOne({ businessId, userId });
+            if (existingReview) {
+                return res.status(400).json({ success: false, message: "You have already reviewed this business. Please update your existing review." });
+            }
+
             // Create Review
-            const newReview = new Review({
-                businessId,
-                userId,
-                rating,
-                review
-            });
+            const newReview = new Review({ businessId, userId, rating, review });
             await newReview.save();
 
             // Update Business Stats (Rating & Count)
@@ -388,25 +389,94 @@ const UserController = {
                 const currentRating = business.rating || 0;
 
                 const newCount = currentCount + 1;
-                // Calculate new average: ((oldAvg * oldCnt) + newRating) / newCnt
+                // Calculate new average
                 const newRating = ((currentRating * currentCount) + rating) / newCount;
 
                 business.ratingCount = newCount;
-                business.rating = parseFloat(newRating.toFixed(1)); // Keep 1 decimal
+                business.rating = parseFloat(newRating.toFixed(1));
                 await business.save();
             }
 
-            return res.status(201).json({
-                success: true,
-                message: "Review added successfully",
-                review: newReview
-            });
+            return res.status(201).json({ success: true, message: "Review added successfully", review: newReview });
 
         } catch (error) {
-            return res.status(500).json({
-                message: "Failed to add review",
-                error: error.message
-            });
+            return res.status(500).json({ message: "Failed to add review", error: error.message });
+        }
+    },
+
+    // ===================== UPDATE REVIEW =====================
+    updateReview: async (req, res) => {
+        try {
+            const { id } = req.params; // Review ID
+            const { rating, review } = req.body;
+
+            if (!rating) {
+                return res.status(400).json({ message: "Rating is required" });
+            }
+
+            const existingReview = await Review.findById(id);
+            if (!existingReview) {
+                return res.status(404).json({ message: "Review not found" });
+            }
+
+            const oldRating = existingReview.rating;
+            existingReview.rating = rating;
+            existingReview.review = review;
+            await existingReview.save();
+
+            // Update Business Stats
+            const business = await Business.findById(existingReview.businessId);
+            if (business) {
+                const currentCount = business.ratingCount || 1; // prevent div by zero
+                const currentRating = business.rating || 0;
+
+                // Adjusted average: Remove old rating, add new rating
+                let newRating = ((currentRating * currentCount) - oldRating + rating) / currentCount;
+                if (newRating < 0) newRating = 0;
+
+                business.rating = parseFloat(newRating.toFixed(1));
+                await business.save();
+            }
+
+            return res.status(200).json({ success: true, message: "Review updated successfully", review: existingReview });
+        } catch (error) {
+            return res.status(500).json({ message: "Failed to update review", error: error.message });
+        }
+    },
+
+    // ===================== DELETE REVIEW =====================
+    deleteReview: async (req, res) => {
+        try {
+            const { id } = req.params; // Review ID
+
+            const existingReview = await Review.findById(id);
+            if (!existingReview) {
+                return res.status(404).json({ message: "Review not found" });
+            }
+
+            await Review.findByIdAndDelete(id);
+
+            // Update Business Stats
+            const business = await Business.findById(existingReview.businessId);
+            if (business) {
+                const currentCount = business.ratingCount || 1;
+                const currentRating = business.rating || 0;
+
+                const newCount = currentCount - 1;
+                let newRating = 0;
+
+                if (newCount > 0) {
+                    newRating = ((currentRating * currentCount) - existingReview.rating) / newCount;
+                }
+
+                business.ratingCount = newCount;
+                business.rating = parseFloat(newRating.toFixed(1));
+                await business.save();
+            }
+
+            return res.status(200).json({ success: true, message: "Review deleted successfully" });
+        } catch (error) {
+            return res.status(500).json({ message: "Failed to delete review", error: error.message });
         }
     }
 };
