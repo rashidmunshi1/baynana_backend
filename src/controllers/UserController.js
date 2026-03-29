@@ -372,6 +372,16 @@ const UserController = {
                 return res.status(400).json({ message: "BusinessId, UserId and Rating are required" });
             }
 
+            // Check if user is the owner of the business
+            const business = await Business.findById(businessId);
+            if (!business) {
+                return res.status(404).json({ message: "Business not found" });
+            }
+
+            if (business.userId.toString() === userId.toString()) {
+                return res.status(400).json({ success: false, message: "Owners cannot review their own business." });
+            }
+
             // Check if user already reviewed this business
             const existingReview = await Review.findOne({ businessId, userId });
             if (existingReview) {
@@ -383,19 +393,16 @@ const UserController = {
             await newReview.save();
 
             // Update Business Stats (Rating & Count)
-            const business = await Business.findById(businessId);
-            if (business) {
-                const currentCount = business.ratingCount || 0;
-                const currentRating = business.rating || 0;
+            const currentCount = business.ratingCount || 0;
+            const currentRating = business.rating || 0;
 
-                const newCount = currentCount + 1;
-                // Calculate new average
-                const newRating = ((currentRating * currentCount) + rating) / newCount;
+            const newCount = currentCount + 1;
+            // Calculate new average
+            const newRating = ((currentRating * currentCount) + rating) / newCount;
 
-                business.ratingCount = newCount;
-                business.rating = parseFloat(newRating.toFixed(1));
-                await business.save();
-            }
+            business.ratingCount = newCount;
+            business.rating = parseFloat(newRating.toFixed(1));
+            await business.save();
 
             return res.status(201).json({ success: true, message: "Review added successfully", review: newReview });
 
