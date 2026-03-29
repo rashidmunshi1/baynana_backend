@@ -19,6 +19,7 @@ const businessSchema = new mongoose.Schema({
 
   // Google Maps URL
   locationUrl: { type: String, default: null },
+  website: { type: String, default: "" },
 
   // GPS Coordinates
   latitude: { type: Number, default: null },
