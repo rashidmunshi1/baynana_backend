@@ -310,13 +310,13 @@ exports.totalbusiness = async (req, res) => {
 
 exports.getUserBusinesses = async (req, res) => {
   try {
-    const mobile = req.params.mobile;
+    const userId = req.params.userId;
 
-    if (!mobile) {
-      return res.status(400).json({ message: "Mobile number is required" });
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
     }
 
-    const businesses = await Business.find({ mobile })
+    const businesses = await Business.find({ userId })
       .populate("category")
       .populate("subcategories")
       .sort({ createdAt: -1 });

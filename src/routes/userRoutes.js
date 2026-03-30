@@ -18,8 +18,8 @@ router.post('/add-review', userController.addReview);
 router.put('/update-review/:id', userController.updateReview);
 router.delete('/delete-review/:id', userController.deleteReview);
 
-console.log("Loading User Route: /my-businesses/:mobile");
-router.get("/my-businesses/:mobile", getUserBusinesses);
+console.log("Loading User Route: /my-businesses/:userId");
+router.get("/my-businesses/:userId", getUserBusinesses);
 router.get("/search", searchBusiness);
 router.get("/business-by-category/:categoryId", getBusinessesByCategory);
 router.get("/business/:id", getBusinessById);
