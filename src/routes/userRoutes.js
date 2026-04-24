@@ -38,4 +38,8 @@ router.get('/banners', userController.getBanners);
 router.get('/event-banners', userController.getEventBanners);
 router.get('/videos', userController.getVideos);
 
+const { getExcelDataByCategory, searchExcelData } = require("../controllers/excelDataController");
+router.get("/excel-data/category/:categoryName", getExcelDataByCategory);
+router.get("/excel-data/search", searchExcelData);
+
 module.exports = router;
