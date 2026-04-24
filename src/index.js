@@ -9,7 +9,7 @@ const path = require("path");
 
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(cors());
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
