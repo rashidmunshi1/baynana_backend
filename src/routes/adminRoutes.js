@@ -22,7 +22,13 @@ const {
   updateSubCategory,
   deleteSubCategory
 } = require("../controllers/subCategoryController");
-const { uploadExcelData, getExcelData } = require("../controllers/excelDataController");
+const { 
+  uploadExcelData, 
+  getExcelData, 
+  getAllUploads, 
+  getExcelDataByUploadId, 
+  deleteExcelUpload 
+} = require("../controllers/excelDataController");
 
 router.post("/register", registerAdmin);
 router.post("/login", loginAdmin);
@@ -84,8 +90,11 @@ router.get("/all-event-banners", getAllEventBanners);
 router.put("/update-event-banner/:id", uploadEventBanner.single("image"), updateEventBanner);
 router.delete("/delete-event-banner/:id", deleteEventBanner);
 
-// Excel Upload route
+// Excel Upload routes
 router.post("/excel-data", uploadExcelData);
 router.get("/excel-data", getExcelData);
+router.get("/excel-uploads", getAllUploads);
+router.get("/excel-data/upload/:uploadId", getExcelDataByUploadId);
+router.delete("/excel-upload/:uploadId", deleteExcelUpload);
 
 module.exports = router;
