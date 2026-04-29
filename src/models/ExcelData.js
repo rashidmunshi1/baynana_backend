@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 
 const excelDataSchema = new mongoose.Schema({
-  title: { type: String, required: true },
+  title: { type: String, required: false },
   description: { type: String, default: "" },
-  categories: { type: [String], default: [] },
+  category: { type: String, default: "" },
   uploadId: { type: mongoose.Schema.Types.ObjectId, ref: "ExcelUpload" },
 }, { timestamps: true });
 
