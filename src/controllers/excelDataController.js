@@ -47,7 +47,7 @@ exports.getExcelData = async (req, res) => {
 exports.getExcelDataByCategory = async (req, res) => {
   try {
     const { categoryName } = req.params;
-    const data = await ExcelData.find({ categories: categoryName }).sort({ createdAt: -1 });
+    const data = await ExcelData.find({ category: { $regex: categoryName, $options: "i" } }).sort({ createdAt: -1 });
     return res.status(200).json({ success: true, data });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -62,7 +62,7 @@ exports.searchExcelData = async (req, res) => {
     }
     const data = await ExcelData.find({
       $or: [
-        { categories: { $regex: q, $options: "i" } },
+        { category: { $regex: q, $options: "i" } },
         { title: { $regex: q, $options: "i" } }
       ]
     }).sort({ createdAt: -1 });
