@@ -206,15 +206,26 @@ exports.updateBusiness = async (req, res) => {
       latitude: latitude ? Number(latitude) : null,
       longitude: longitude ? Number(longitude) : null,
       description,
-      services,
-      socialLinks,
+      services: services || [],
+      socialLinks: socialLinks || [],
       timings: parsedUpdateTimings
     };
 
     // New images uploaded?
-    if (req.files && req.files.length > 0) {
-      updateData.images = req.files.map((file) => file.filename);
+    let finalImages = [];
+    if (req.body.existingImages) {
+      if (Array.isArray(req.body.existingImages)) {
+        finalImages = [...req.body.existingImages];
+      } else {
+        finalImages.push(req.body.existingImages);
+      }
     }
+
+    if (req.files && req.files.length > 0) {
+      const newImages = req.files.map((file) => file.filename);
+      finalImages = [...finalImages, ...newImages];
+    }
+    updateData.images = finalImages;
 
     // Update Paid Details
     if (isPaid !== undefined) {
