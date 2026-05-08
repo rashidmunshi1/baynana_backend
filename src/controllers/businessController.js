@@ -399,24 +399,29 @@ exports.searchBusiness = async (req, res) => {
 
     const keyword = q.trim();
     const fuzzyRegex = buildFuzzyRegex(keyword);
+    const regexSource = fuzzyRegex.source;
 
     // Find matching categories
     const matchingCategories = await Category.find({
-      name: { $regex: fuzzyRegex }
+      name: { $regex: regexSource, $options: "i" }
     }).select('_id');
     const categoryIds = matchingCategories.map(c => c._id);
 
+    const orConditions = [
+      { businessName: { $regex: regexSource, $options: "i" } },
+      { city: { $regex: regexSource, $options: "i" } },
+      { address: { $regex: regexSource, $options: "i" } },
+      { services: { $regex: regexSource, $options: "i" } },
+    ];
+
+    if (categoryIds.length > 0) {
+      orConditions.push({ category: { $in: categoryIds } });
+      orConditions.push({ subcategories: { $in: categoryIds } });
+    }
+
     const businesses = await Business.find({
       status: true, // only active businesses
-      // isPaid: true, // REMOVED so unpaid also show up
-      $or: [
-        { businessName: { $regex: fuzzyRegex } },
-        { city: { $regex: fuzzyRegex } },
-        { address: { $regex: fuzzyRegex } },
-        { services: { $regex: fuzzyRegex } },
-        { category: { $in: categoryIds } },
-        { subcategories: { $in: categoryIds } }
-      ],
+      $or: orConditions,
     })
       .populate("category")
       .populate("subcategories")
