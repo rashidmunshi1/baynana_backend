@@ -361,6 +361,31 @@ exports.getUserBusinesses = async (req, res) => {
   }
 };
 
+function buildFuzzyRegex(keyword) {
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const words = escaped.split(/\s+/).filter(w => w.length > 0);
+  
+  const fuzzyWords = words.map(word => {
+    if (word.length <= 2) return word;
+    
+    const patterns = [word];
+    // 1. Vowels interchange (shipping -> shopping)
+    patterns.push(word.replace(/[aeiou]/gi, '[aeiou]'));
+    
+    for (let i = 0; i < word.length; i++) {
+      // 2. Substitution (one char changed)
+      patterns.push(word.slice(0, i) + '.' + word.slice(i + 1));
+      // 3. Deletion in keyword (user typed extra char, e.g. shooping -> shopping)
+      patterns.push(word.slice(0, i) + word.slice(i + 1));
+      // 4. Insertion in keyword (user missed a char, e.g. shping -> shopping)
+      patterns.push(word.slice(0, i) + '.?' + word.slice(i));
+    }
+    return `(${patterns.join('|')})`;
+  });
+  
+  return new RegExp(fuzzyWords.join('.*'), 'i');
+}
+
 exports.searchBusiness = async (req, res) => {
   try {
     const { q } = req.query;
@@ -373,10 +398,11 @@ exports.searchBusiness = async (req, res) => {
     }
 
     const keyword = q.trim();
+    const fuzzyRegex = buildFuzzyRegex(keyword);
 
     // Find matching categories
     const matchingCategories = await Category.find({
-      name: { $regex: keyword, $options: "i" }
+      name: { $regex: fuzzyRegex }
     }).select('_id');
     const categoryIds = matchingCategories.map(c => c._id);
 
@@ -384,10 +410,10 @@ exports.searchBusiness = async (req, res) => {
       status: true, // only active businesses
       // isPaid: true, // REMOVED so unpaid also show up
       $or: [
-        { businessName: { $regex: keyword, $options: "i" } },
-        { city: { $regex: keyword, $options: "i" } },
-        { address: { $regex: keyword, $options: "i" } },
-        { services: { $regex: keyword, $options: "i" } },
+        { businessName: { $regex: fuzzyRegex } },
+        { city: { $regex: fuzzyRegex } },
+        { address: { $regex: fuzzyRegex } },
+        { services: { $regex: fuzzyRegex } },
         { category: { $in: categoryIds } },
         { subcategories: { $in: categoryIds } }
       ],
