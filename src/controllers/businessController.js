@@ -1,5 +1,6 @@
 const Business = require("../models/Business");
 const Review = require("../models/Review"); // Import Review Model
+const Category = require("../models/Category");
 
 // ADD BUSINESS
 exports.addBusiness = async (req, res) => {
@@ -373,6 +374,12 @@ exports.searchBusiness = async (req, res) => {
 
     const keyword = q.trim();
 
+    // Find matching categories
+    const matchingCategories = await Category.find({
+      name: { $regex: keyword, $options: "i" }
+    }).select('_id');
+    const categoryIds = matchingCategories.map(c => c._id);
+
     const businesses = await Business.find({
       status: true, // only active businesses
       // isPaid: true, // REMOVED so unpaid also show up
@@ -381,6 +388,8 @@ exports.searchBusiness = async (req, res) => {
         { city: { $regex: keyword, $options: "i" } },
         { address: { $regex: keyword, $options: "i" } },
         { services: { $regex: keyword, $options: "i" } },
+        { category: { $in: categoryIds } },
+        { subcategories: { $in: categoryIds } }
       ],
     })
       .populate("category")
