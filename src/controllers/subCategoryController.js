@@ -15,16 +15,24 @@ exports.addSubCategory = async (req, res) => {
             return res.status(404).json({ message: "Parent category not found" });
         }
 
-        // Check if subcategory exists
-        const existing = await Category.findOne({ name });
+        // Check if subcategory exists under the same parent
+        const existing = await Category.findOne({ name, parentCategory: parent._id });
         if (existing) {
-            return res.status(400).json({ message: "Category with this name already exists" });
+            return res.status(400).json({ message: "Subcategory with this name already exists in this category" });
+        }
+
+        let baseSlug = name.toLowerCase().replace(/\s+/g, '-');
+        let slug = baseSlug;
+        let count = 1;
+        while (await Category.findOne({ slug })) {
+            slug = `${baseSlug}-${count}`;
+            count++;
         }
 
         const subCategory = await Category.create({
             name,
             image: req.file ? req.file.filename : null,
-            slug: name.toLowerCase().replace(/\s+/g, '-'),
+            slug,
             description: description || "",
             status: status || "Active",
             orderPriority: orderPriority || 0,
@@ -74,7 +82,14 @@ exports.updateSubCategory = async (req, res) => {
         }
 
         if (updates.name) {
-            updates.slug = updates.name.toLowerCase().replace(/\s+/g, '-');
+            let baseSlug = updates.name.toLowerCase().replace(/\s+/g, '-');
+            let slug = baseSlug;
+            let count = 1;
+            while (await Category.findOne({ slug, _id: { $ne: id } })) {
+                slug = `${baseSlug}-${count}`;
+                count++;
+            }
+            updates.slug = slug;
         }
 
         const updatedSubCategory = await Category.findByIdAndUpdate(id, updates, { new: true });
