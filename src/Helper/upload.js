@@ -119,7 +119,10 @@ const videoStorage = multer.diskStorage({
   }
 });
 
-const uploadVideo = multer({ storage: videoStorage });
+const uploadVideo = multer({ 
+  storage: videoStorage,
+  limits: { fileSize: 20 * 1024 * 1024 } // 20MB limit
+});
 
 
 // ---------- EVENT BANNER STORAGE ----------
@@ -138,7 +141,10 @@ const eventBannerStorage = multer.diskStorage({
   }
 });
 
-const uploadEventBanner = multer({ storage: eventBannerStorage });
+const uploadEventBanner = multer({ 
+  storage: eventBannerStorage,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+});
 
 
 // EXPORT ALL
