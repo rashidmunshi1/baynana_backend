@@ -2,6 +2,21 @@ const Business = require("../models/Business");
 const Review = require("../models/Review"); // Import Review Model
 const Category = require("../models/Category");
 
+const parseNumber = (val) => {
+  if (val === undefined || val === null || val === "" || val === "undefined" || val === "null" || val === "NaN") {
+    return null;
+  }
+  const num = Number(val);
+  return isNaN(num) ? null : num;
+};
+
+const parseBoolean = (val) => {
+  if (val === true || val === "true" || val === 1 || val === "1") {
+    return true;
+  }
+  return false;
+};
+
 // ADD BUSINESS
 exports.addBusiness = async (req, res) => {
   try {
@@ -36,11 +51,15 @@ exports.addBusiness = async (req, res) => {
     // 1️⃣ IMAGES
     const images = req.files ? req.files.map((f) => f.filename) : [];
 
+    const parsedIsPaid = parseBoolean(isPaid);
+    const parsedPaidDays = parseNumber(paidDays);
+    const parsedPaidAmount = parseNumber(paidAmount);
+
     // 2️⃣ PAID LOGIC
     let paidExpiry = null;
-    if (isPaid && paidDays) {
+    if (parsedIsPaid && parsedPaidDays) {
       paidExpiry = new Date();
-      paidExpiry.setDate(paidExpiry.getDate() + Number(paidDays));
+      paidExpiry.setDate(paidExpiry.getDate() + parsedPaidDays);
     }
 
     // 3️⃣ USER ID LOGIC (AUTO DETECT)
@@ -63,16 +82,16 @@ exports.addBusiness = async (req, res) => {
       pincode,
       locationUrl,
       website,
-      latitude: latitude ? Number(latitude) : null,
-      longitude: longitude ? Number(longitude) : null,
+      latitude: parseNumber(latitude),
+      longitude: parseNumber(longitude),
       description,
       services,
       socialLinks,
       timings: parsedTimings,
       images,
-      isPaid,
-      paidAmount,
-      paidDays,
+      isPaid: parsedIsPaid,
+      paidAmount: parsedPaidAmount ?? 0,
+      paidDays: parsedPaidDays ?? 0,
       paidExpiry,
       userId,
       status: false, // Default to Pending (False) until Admin approves
@@ -204,8 +223,8 @@ exports.updateBusiness = async (req, res) => {
       pincode,
       locationUrl,
       website,
-      latitude: latitude ? Number(latitude) : null,
-      longitude: longitude ? Number(longitude) : null,
+      latitude: parseNumber(latitude),
+      longitude: parseNumber(longitude),
       description,
       services: services || [],
       socialLinks: socialLinks || [],
@@ -229,14 +248,18 @@ exports.updateBusiness = async (req, res) => {
     updateData.images = finalImages;
 
     // Update Paid Details
-    if (isPaid !== undefined) {
-      updateData.isPaid = isPaid;
-      updateData.paidAmount = paidAmount;
-      updateData.paidDays = paidDays;
+    if (isPaid !== undefined && isPaid !== "undefined") {
+      const parsedIsPaid = parseBoolean(isPaid);
+      const parsedPaidDays = parseNumber(paidDays);
+      const parsedPaidAmount = parseNumber(paidAmount);
 
-      if (isPaid && paidDays) {
+      updateData.isPaid = parsedIsPaid;
+      updateData.paidAmount = parsedPaidAmount ?? 0;
+      updateData.paidDays = parsedPaidDays ?? 0;
+
+      if (parsedIsPaid && parsedPaidDays) {
         let newExpiry = new Date();
-        newExpiry.setDate(newExpiry.getDate() + Number(paidDays));
+        newExpiry.setDate(newExpiry.getDate() + parsedPaidDays);
         updateData.paidExpiry = newExpiry;
       }
     }
