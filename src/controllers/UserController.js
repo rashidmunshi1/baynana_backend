@@ -8,7 +8,7 @@ const sendOtp = require("../Helper/otpService");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-const generateOtp = () => "123456"; // TESTING OTP
+const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
 
 const UserController = {
 
