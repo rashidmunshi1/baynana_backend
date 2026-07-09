@@ -1,5 +1,5 @@
 const User = require("../models/UserModel.js");
-const sendOtp = require("../Helper/twilioService");
+const sendOtp = require("../Helper/otpService");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 

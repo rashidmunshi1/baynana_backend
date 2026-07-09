@@ -4,7 +4,7 @@ const VideoModule = require("../models/VideoModule");
 const EventBanner = require("../models/EventBanner");
 const Review = require("../models/Review");
 const Business = require("../models/Business");
-const sendOtp = require("../Helper/twilioService");
+const sendOtp = require("../Helper/otpService");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
@@ -242,8 +242,8 @@ const UserController = {
             user.otp = otp;
             await user.save();
 
-            // Send OTP via Twilio
-            // await sendOtp(twilioNumber, otp);
+            // Send OTP
+            await sendOtp(twilioNumber, otp);
 
             return res.status(200).json({
                 success: true,
@@ -346,8 +346,8 @@ const UserController = {
             user.otp = otp;
             await user.save();
 
-            // Send OTP via Twilio
-            // await sendOtp(twilioNumber, otp);
+            // Send OTP
+            await sendOtp(twilioNumber, otp);
 
             return res.status(200).json({
                 success: true,
