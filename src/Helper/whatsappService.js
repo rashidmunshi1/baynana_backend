@@ -1,5 +1,6 @@
 const axios = require('axios');
 require('dotenv').config();
+const Setting = require('../models/Setting');
 
 /**
  * Sends a WhatsApp OTP template message using the Meta/Facebook Graph API.
@@ -9,10 +10,22 @@ require('dotenv').config();
  */
 const sendWhatsappOtp = async (phoneNumber, otp) => {
     try {
-        const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID ? process.env.WHATSAPP_PHONE_NUMBER_ID.trim() : null;
-        const accessToken = process.env.WHATSAPP_ACCESS_TOKEN ? process.env.WHATSAPP_ACCESS_TOKEN.trim() : null;
-        const templateName = (process.env.WHATSAPP_TEMPLATE_NAME || 'otp_template').trim();
-        const templateLang = (process.env.WHATSAPP_TEMPLATE_LANG || 'en_US').trim();
+        let settings = await Setting.findOne();
+        if (!settings) {
+            settings = {
+                whatsappPhoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID,
+                whatsappAccessToken: process.env.WHATSAPP_ACCESS_TOKEN,
+                whatsappTemplateName: process.env.WHATSAPP_TEMPLATE_NAME,
+                whatsappTemplateLang: process.env.WHATSAPP_TEMPLATE_LANG,
+                whatsappTemplateParamsCount: process.env.WHATSAPP_TEMPLATE_PARAMS_COUNT
+            };
+        }
+
+        const phoneNumberId = settings.whatsappPhoneNumberId ? settings.whatsappPhoneNumberId.trim() : null;
+        const accessToken = settings.whatsappAccessToken ? settings.whatsappAccessToken.trim() : null;
+        const templateName = (settings.whatsappTemplateName || 'otp_template').trim();
+        const templateLang = (settings.whatsappTemplateLang || 'en_US').trim();
+        const templateParamsCount = settings.whatsappTemplateParamsCount || 1;
 
         if (!phoneNumberId || !accessToken) {
             console.error("WhatsApp credentials missing in environment configuration.");
@@ -33,7 +46,7 @@ const sendWhatsappOtp = async (phoneNumber, otp) => {
         // Build body parameters dynamically
         // For OTP-only templates: WHATSAPP_TEMPLATE_PARAMS_COUNT=1 (default)
         // For templates like jaspers_market_order_confirmation_v1: WHATSAPP_TEMPLATE_PARAMS_COUNT=3
-        const paramsCount = parseInt(process.env.WHATSAPP_TEMPLATE_PARAMS_COUNT || '1', 10);
+        const paramsCount = parseInt(templateParamsCount, 10) || 1;
         const bodyParams = [];
         for (let i = 0; i < paramsCount; i++) {
             bodyParams.push({ "type": "text", "text": otp });

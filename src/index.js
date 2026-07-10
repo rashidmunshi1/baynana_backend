@@ -27,8 +27,11 @@ app.get('/', (req, res) => {
     res.send('Welcome to the API');
 });
 
+const settingRoutes = require('./routes/settingRoutes');
+
 app.use('/api/user', userRoutes);
 app.use('/api/admin', aminRoutes);
+app.use('/api/admin/settings', settingRoutes);
 
 // Start Server
 const PORT = process.env.PORT || 5000;
