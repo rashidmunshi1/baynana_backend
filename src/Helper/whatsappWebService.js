@@ -180,6 +180,7 @@ const startSession = async (sessionId, label = 'WhatsApp Account', isActive = fa
                     '--disable-accelerated-2d-canvas',
                     '--no-first-run',
                     '--no-zygote',
+                    '--single-process',
                     '--disable-gpu'
                 ]
             }
