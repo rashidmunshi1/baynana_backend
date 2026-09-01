@@ -8,12 +8,28 @@ const WhatsAppSession = require('../models/WhatsAppSession');
 const sessions = new Map();
 let ioInstance = null;
 
+const { execSync } = require('child_process');
+
 /**
  * Auto-detect available Google Chrome or Chromium binary path
  */
 const getChromeExecutablePath = () => {
     if (process.env.PUPPETEER_EXECUTABLE_PATH && fs.existsSync(process.env.PUPPETEER_EXECUTABLE_PATH)) {
         return process.env.PUPPETEER_EXECUTABLE_PATH;
+    }
+
+    // Try finding via 'which' command on Linux / macOS
+    try {
+        const whichOutput = execSync('which google-chrome-stable || which google-chrome || which chromium-browser || which chromium', {
+            stdio: ['pipe', 'pipe', 'ignore'],
+            encoding: 'utf-8'
+        }).trim();
+        if (whichOutput && fs.existsSync(whichOutput)) {
+            console.log(`🔍 Found Chrome via system PATH at: ${whichOutput}`);
+            return whichOutput;
+        }
+    } catch (e) {
+        // ignore
     }
 
     const possiblePaths = [
@@ -27,6 +43,10 @@ const getChromeExecutablePath = () => {
         '/usr/bin/chromium',
         '/usr/bin/chromium-browser',
         '/snap/bin/chromium',
+        '/opt/google/chrome/chrome',
+        '/opt/google/chrome/google-chrome',
+        '/usr/local/bin/chrome',
+        '/usr/local/bin/chromium',
         // Windows
         'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
         'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
