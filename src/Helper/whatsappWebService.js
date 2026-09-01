@@ -63,6 +63,42 @@ const getChromeExecutablePath = () => {
 };
 
 /**
+ * Remove stale Chromium profile lock files to prevent cross-machine SingletonLock crashes
+ */
+const cleanChromiumLocks = (sessionId) => {
+    try {
+        const sessionDir = path.join(process.cwd(), '.wwebjs_auth', `session-${sessionId}`);
+        if (!fs.existsSync(sessionDir)) return;
+
+        const filesToClean = ['SingletonLock', 'SingletonCookie', 'SingletonSocket', 'DevToolsActivePort'];
+        
+        const scanAndRemove = (dir) => {
+            if (!fs.existsSync(dir)) return;
+            const entries = fs.readdirSync(dir, { withFileTypes: true });
+            for (const entry of entries) {
+                const fullPath = path.join(dir, entry.name);
+                if (entry.isDirectory()) {
+                    if (entry.name === 'Default' || entry.name === 'Profile 1') {
+                        scanAndRemove(fullPath);
+                    }
+                } else if (filesToClean.includes(entry.name) || entry.name.startsWith('Singleton')) {
+                    try {
+                        fs.unlinkSync(fullPath);
+                        console.log(`🧹 Removed stale Chromium lock file: ${fullPath}`);
+                    } catch (e) {
+                        // ignore
+                    }
+                }
+            }
+        };
+
+        scanAndRemove(sessionDir);
+    } catch (err) {
+        console.error('Error cleaning Chromium lock files:', err);
+    }
+};
+
+/**
  * Emit all sessions list to Socket.io clients
  */
 const emitSessionsList = async () => {
@@ -122,6 +158,7 @@ const startSession = async (sessionId, label = 'WhatsApp Account', isActive = fa
     console.log(`🚀 Initializing WhatsApp Web Client for Session [${sessionId} - "${label}"]...`);
 
     try {
+        cleanChromiumLocks(sessionId);
         const executablePath = getChromeExecutablePath();
 
         const client = new Client({

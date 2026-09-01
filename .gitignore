@@ -12,7 +12,8 @@ node_modules/
 uploads/
 src/uploads/
 
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# WhatsApp sessions & Chromium Cache
+.wwebjs_auth/
+.wwebjs_cache/
+.cache/
+
