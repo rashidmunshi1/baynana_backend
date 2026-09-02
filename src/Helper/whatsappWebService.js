@@ -180,28 +180,10 @@ const startSession = async (sessionId, label = 'WhatsApp Account', isActive = fa
                     '--disable-accelerated-2d-canvas',
                     '--no-first-run',
                     '--no-zygote',
-                    '--single-process',
                     '--disable-gpu',
-                    '--disable-software-rasterizer',
                     '--disable-extensions',
-                    '--disable-default-apps',
-                    '--disable-sync',
-                    '--disable-background-networking',
-                    '--disable-background-timer-throttling',
-                    '--disable-backgrounding-occluded-windows',
-                    '--disable-breakpad',
-                    '--disable-component-extensions-with-background-pages',
-                    '--disable-features=TranslateUI,BlinkGenPropertyTrees,AudioServiceOutOfProcess,IsolateOrigins,site-per-process',
-                    '--disable-ipc-flooding-protection',
-                    '--disable-renderer-backgrounding',
-                    '--enable-features=NetworkService,NetworkServiceInProcess',
-                    '--force-color-profile=srgb',
                     '--hide-scrollbars',
-                    '--metrics-recording-only',
-                    '--mute-audio',
-                    '--no-default-browser-check',
-                    '--memory-pressure-off',
-                    '--js-flags=--max-old-space-size=128'
+                    '--mute-audio'
                 ]
             }
         });
@@ -535,7 +517,7 @@ const formatPhoneNumber = (phone) => {
 /**
  * Send WhatsApp Message using a specific session
  */
-const sendMessageFromSession = async (sessionId, phone, messageText) => {
+const sendMessageFromSession = async (sessionId, phone, messageText, maxRetries = 2) => {
     const sessionData = sessions.get(sessionId);
     if (!sessionData || !sessionData.client || sessionData.status !== 'READY') {
         throw new Error(`WhatsApp Session [${sessionId}] is not connected or ready.`);
@@ -543,9 +525,20 @@ const sendMessageFromSession = async (sessionId, phone, messageText) => {
 
     const chatId = formatPhoneNumber(phone);
     console.log(`[Session: ${sessionId}] Sending WhatsApp message to ${chatId}...`);
-    const res = await sessionData.client.sendMessage(chatId, messageText);
-    console.log(`[Session: ${sessionId}] ✅ Message sent successfully!`);
-    return res;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const res = await sessionData.client.sendMessage(chatId, messageText);
+            console.log(`[Session: ${sessionId}] ✅ Message sent successfully!`);
+            return res;
+        } catch (err) {
+            console.warn(`[Session: ${sessionId}] Send attempt ${attempt} failed (${err.message}). Retrying...`);
+            if (attempt === maxRetries) {
+                throw err;
+            }
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+        }
+    }
 };
 
 /**

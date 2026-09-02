@@ -16,13 +16,18 @@ const Setting = require('../models/Setting');
  */
 const sendOtp = async (phoneNumber, otp) => {
     // Priority 1: Check if any active WhatsApp Web session is connected
-    if (whatsappWebService.hasActiveReadySession()) {
-        console.log(`[OTP] Sending OTP via active linked WhatsApp Web account to ${phoneNumber}...`);
+    const isWebReady = whatsappWebService.hasActiveReadySession();
+    console.log(`[OTP] Checking WhatsApp Web session: isConnected=${isWebReady}`);
+
+    if (isWebReady) {
+        console.log(`[OTP] 🚀 Dispatching OTP via Linked WhatsApp Web account to ${phoneNumber}...`);
         try {
             return await whatsappWebService.sendOtpMessage(phoneNumber, otp);
         } catch (webErr) {
-            console.error('[OTP] WhatsApp Web sending failed, trying fallback:', webErr.message);
+            console.error('[OTP] ❌ WhatsApp Web sending failed, trying fallback:', webErr.message);
         }
+    } else {
+        console.log(`[OTP] ℹ️ WhatsApp Web is not connected yet. Falling back to Meta Cloud API / Twilio.`);
     }
 
     // Priority 2: Fallback to Settings / Env Provider (Meta Cloud API or Twilio)
