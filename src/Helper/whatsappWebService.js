@@ -569,7 +569,7 @@ const sendOtpMessage = async (phone, otp) => {
         throw new Error('No WhatsApp account is currently connected & active for OTP.');
     }
 
-    const messageText = `🔐 *Your Verification Code is:* *${otp}*\n\nPlease do not share this OTP with anyone. It is valid for 10 minutes.\n\n_Sent via Secure System_`;
+    const messageText = `🔐 *Your Verification Code is:* *${otp}*\n\nPlease do not share this OTP with anyone. It is valid for 10 minutes.`;
     return await sendMessageFromSession(activeSessionId, phone, messageText);
 };
 
